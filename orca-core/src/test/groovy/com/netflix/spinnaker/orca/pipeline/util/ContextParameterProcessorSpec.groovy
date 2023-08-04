@@ -31,6 +31,7 @@ import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -435,6 +436,14 @@ class ContextParameterProcessorSpec extends Specification {
         trigger = new JenkinsTrigger("master", "job", 1, null)
       },
       pipeline {
+        stage {
+          refId = "stage1"
+          type = "wait"
+          status = SUCCEEDED
+          context = [waitTime: 10]
+        }
+      },
+      orchestration {
         stage {
           refId = "stage1"
           type = "wait"

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -54,14 +53,12 @@ interface ExpressionAware {
     val stage = this
     this.context = object : MutableMap<String, Any?> by processed {
       override fun get(key: String): Any? {
-        if (execution.type == PIPELINE) {
-          if (key == "trigger") {
-            return execution.trigger
-          }
+        if (key == "trigger") {
+          return execution.trigger
+        }
 
-          if (key == "execution") {
-            return execution
-          }
+        if (key == "execution") {
+          return execution
         }
 
         val result = processed[key]

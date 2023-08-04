@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
-import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -149,8 +148,7 @@ public class ContextParameterProcessor {
 
   /**
    * Builds a context for the SpEL evaluator to use while processing a stage This involves merging
-   * the following into a map - the stage context - execution object (if PIPELINE) - trigger object
-   * (if PIPELINE)
+   * the following into a map - the stage context - execution object - trigger object
    *
    * @param stage Stage to build context for
    * @return StageContext (really a map) for the merged context
@@ -159,22 +157,20 @@ public class ContextParameterProcessor {
     Map<String, Object> augmentedContext = new HashMap<>(stage.getContext());
     PipelineExecution execution = stage.getExecution();
 
-    if (execution.getType() == PIPELINE) {
-      augmentedContext.putAll(buildExecutionContext(execution));
+    augmentedContext.putAll(buildExecutionContext(execution));
 
-      // MPTv2 uses templateVariables which used to be expanded at pipeline creation time.
-      // With SpEL V4 we don't preprocess the whole pipeline anymore, hence we append
-      // "templateVariables" to the SpEL
-      // evaluation context here so that those vars can be processed and expanded when the stage
-      // runs
-      SpelEvaluatorVersion spelEvaluatorVersion =
-          getEffectiveSpelVersionToUse(execution.getSpelEvaluator());
+    // MPTv2 uses templateVariables which used to be expanded at pipeline creation time.
+    // With SpEL V4 we don't preprocess the whole pipeline anymore, hence we append
+    // "templateVariables" to the SpEL
+    // evaluation context here so that those vars can be processed and expanded when the stage
+    // runs
+    SpelEvaluatorVersion spelEvaluatorVersion =
+        getEffectiveSpelVersionToUse(execution.getSpelEvaluator());
 
-      if (SpelEvaluatorVersion.V4.equals(spelEvaluatorVersion)) {
-        Map templatedVariables = execution.getTemplateVariables();
-        if (templatedVariables != null && !templatedVariables.isEmpty()) {
-          augmentedContext.put("templateVariables", templatedVariables);
-        }
+    if (SpelEvaluatorVersion.V4.equals(spelEvaluatorVersion)) {
+      Map templatedVariables = execution.getTemplateVariables();
+      if (templatedVariables != null && !templatedVariables.isEmpty()) {
+        augmentedContext.put("templateVariables", templatedVariables);
       }
     }
 
@@ -183,8 +179,7 @@ public class ContextParameterProcessor {
 
   /**
    * Builds a context for the SpEL evaluator to use while processing an execution This involves
-   * merging the following into a map - execution object (if PIPELINE) - trigger object (if
-   * PIPELINE)
+   * merging the following into a map - execution object - trigger object
    *
    * @param execution Execution to build context for
    * @return Map of the merged context

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.annotation.Nonnull
 
@@ -56,6 +57,27 @@ class ExpressionUtilsSpec extends Specification {
       [key: 'var1', value: 100, sourceValue: '{varFromStage1}', description: 'nothing here'],
       [key: 'var2', value: 200, sourceValue: '{varFromStage2}', description: 'should be 200'],
       [key: 'sum', value: 300, sourceValue: '{var1 + var2}', description: null]
+    ]
+  }
+
+  @Unroll
+  def 'should evaluate execution id correctly'() {
+    when:
+    def result = utils.evaluateVariables(execution, [], 'v4',
+      [
+        [key: 'var1', value: '${execution.id}'],
+      ])
+
+    then:
+    result.size() == 2
+    result.result == [
+      [key: 'var1', value: "testId", sourceValue: '{execution.id}', description: null],
+    ]
+
+    where:
+    execution << [
+      createExecution(ExecutionType.PIPELINE),
+      createExecution(ExecutionType.ORCHESTRATION),
     ]
   }
 
@@ -104,8 +126,8 @@ class ExpressionUtilsSpec extends Specification {
     result.detail.containsKey('var1 + var2')
   }
 
-  private static def createExecution() {
-    def execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, "test")
+  private static def createExecution(executionType = ExecutionType.PIPELINE) {
+    def execution = new PipelineExecutionImpl(executionType, "testId", "testApplication")
     def stage1 = new StageExecutionImpl(execution, "evaluateVariables")
     stage1.refId = "1"
     stage1.outputs = [varFromStage1: 100]
